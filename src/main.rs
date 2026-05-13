@@ -247,7 +247,6 @@ fn buscar_rango_aux<'a>(
     }
 }
 
-
 fn main() {
     let mut raiz: Option<Box<Nodo>> = None;
     let datos = vec![
@@ -259,133 +258,140 @@ fn main() {
         (25, "El Principito"),
     ];
 
-    println!("--- Sistema de Inventario de Librería (AVL) ---");
-    for (isbn, titulo) in datos {
+    for (isbn, titulo) in &datos {
         let libro = Libro {
-            isbn,
+            isbn: *isbn,
             titulo: titulo.to_string(),
         };
         raiz = Some(insertar(raiz.take(), libro));
     }
 
-    imprimir(&raiz, 0);
-
-    // --- ESPACIO PARA TUS PRUEBAS ---
-
-
-    // -------------------------------------------------------------
-    // Pruebas de búsqueda (FASE 2)
-    // -------------------------------------------------------------
-    /*println!("\n---BÚSQUEDA---");
-    println!("(Ingrese '0' en cualquier momento para finalizar la búsqueda)");
     loop {
-        println!("\nPor favor, ingrese el ISBN del libro que desea buscar:");
-        
-        let mut entrada = String::new();
+        println!("\n=================================================");
+        println!("   MOTOR DE CATÁLOGO AVL - BIBLIOTECA SANTA ANA  ");
+        println!("=================================================");
+        println!("1. Ver el árbol actual (Estado del catálogo)");
+        println!("2. Probar Fase 1 (Ver rotaciones paso a paso)");
+        println!("3. Probar Fase 2 (Buscar un libro)");
+        println!("4. Probar Fase 3 (Eliminar un libro)");
+        println!("5. Probar Fase 4 (Búsqueda por rango)");
+        println!("0. Salir del sistema");
+        println!("=================================================");
+        println!("Seleccione una opción: ");
 
-        io::stdin()
-            .read_line(&mut entrada)
-            .expect("Error al leer la entrada del usuario");
-        match entrada.trim().parse::<u32>() {
-            Ok(0) => {
-                println!("Saliendo del motor de búsqueda...");
-                break; 
-            }            Ok(isbn_ingresado) => {
-                match buscar(&raiz, isbn_ingresado) {
-                    Some(libro) => println!("Éxito: Se encontró el ISBN {}: '{}'", isbn_ingresado, libro.titulo),
-                    None => println!("El ISBN {} no existe en el catálogo.", isbn_ingresado),
-                }
-            }
-            Err(_) => {
-                println!("Entrada no válida. Por favor, ingrese '0' para salir.");
-            }
-        }
-    }*/
+        let mut opcion = String::new();
+        std::io::stdin().read_line(&mut opcion).expect("Error al leer");
 
-
-    // -------------------------------------------------------------
-    // FASE 3: Mantenimiento 
-    // -------------------------------------------------------------
-    /*println!("\n--- ELIMINACIÓN ---");
-    println!("(Ingrese '0' para finalizar el mantenimiento)");
-
-    loop {
-        println!("\nÁrbol actual:");
-        imprimir(&raiz, 0);
-        println!("\nIngrese el ISBN del libro que desea eliminar:");
-
-        let mut entrada_del = String::new();
-        io::stdin().read_line(&mut entrada_del).expect("Error al leer");
-
-        match entrada_del.trim().parse::<u32>() {
-            Ok(0) => break,
-            Ok(isbn_a_borrar) => {
-                if buscar(&raiz, isbn_a_borrar).is_some() {
-                    raiz = eliminar(raiz.take(), isbn_a_borrar);
-                    println!("Libro con ISBN {} eliminado exitosamente.", isbn_a_borrar);
+        match opcion.trim() {
+            "1" => {
+                println!("\n--- ESTADO ACTUAL DEL ÁRBOL ---");
+                if raiz.is_none() {
+                    println!("El catálogo está vacío.");
                 } else {
-                    println!("El ISBN {} no se encuentra en el catálogo.", isbn_a_borrar);
+                    imprimir(&raiz, 0);
                 }
             }
-            Err(_) => println!("Por favor, ingrese un número válido."),
-        }
-    }
-    println!("--- MANTENIMIENTO FINALIZADO ---");
+            "2" => {
+                println!("\n--- FASE 1: DEMOSTRACIÓN DE INSERCIÓN Y ROTACIONES ---");
+                println!("Insertaremos [10, 20, 30, 5, 2, 25] para comprobar la prueba de escritorio.");
+                
+                let mut arbol_prueba: Option<Box<Nodo>> = None;
+                for (isbn, titulo) in &datos {
+                    println!("\n>> Insertando ISBN: {} ({})", isbn, titulo);
+                    let libro_prueba = Libro {
+                        isbn: *isbn,
+                        titulo: titulo.to_string(),
+                    };
+                    arbol_prueba = Some(insertar(arbol_prueba.take(), libro_prueba));
+                    imprimir(&arbol_prueba, 0);
+                    
+                    println!("(Presione Enter para continuar el siguiente paso...)");
+                    let mut pausa = String::new();
+                    std::io::stdin().read_line(&mut pausa).unwrap();
+                }
+                println!("¡Demostración de la Fase 1 finalizada con éxito!");
+            }
+            "3" => {
+                println!("\n--- FASE 2: BÚSQUEDA ---");
+                loop {
+                    println!("\nIngrese el ISBN a buscar (o '0' para volver al menú):");
+                    let mut entrada = String::new();
+                    std::io::stdin().read_line(&mut entrada).expect("Error al leer");
 
-*/
+                    match entrada.trim().parse::<u32>() {
+                        Ok(0) => break,
+                        Ok(isbn_ingresado) => {
+                            match buscar(&raiz, isbn_ingresado) {
+                                Some(libro) => println!("Éxito: Se encontró '{}'", libro.titulo),
+                                None => println!("El ISBN {} no existe.", isbn_ingresado),
+                            }
+                        }
+                        Err(_) => println!("Entrada no válida. Ingrese números."),
+                    }
+                }
+            }
+            "4" => {
+                println!("\n--- FASE 3: ELIMINACIÓN ---");
+                loop {
+                    println!("\nIngrese el ISBN a eliminar (o '0' para volver al menú):");
+                    let mut entrada = String::new();
+                    std::io::stdin().read_line(&mut entrada).expect("Error al leer");
 
-    // -------------------------------------------------------------
-    // FASE 4: Funcionalidades Extendidas Búsqueda por Rango
-    // -------------------------------------------------------------
-    println!("\n--- BÚSQUEDA POR RANGO  ---");
-    println!("(Ingrese '0' en el valor mínimo para finalizar)");
+                    match entrada.trim().parse::<u32>() {
+                        Ok(0) => break,
+                        Ok(isbn_a_borrar) => {
+                            if buscar(&raiz, isbn_a_borrar).is_some() {
+                                raiz = eliminar(raiz.take(), isbn_a_borrar);
+                                println!("Libro con ISBN {} eliminado. Nuevo árbol:", isbn_a_borrar);
+                                imprimir(&raiz, 0);
+                            } else {
+                                println!("El ISBN {} no se encuentra en el catálogo.", isbn_a_borrar);
+                            }
+                        }
+                        Err(_) => println!("Entrada no válida."),
+                    }
+                }
+            }
+            "5" => {
+                println!("\n--- FASE 4: BÚSQUEDA POR RANGO ---");
+                
+                println!("Ingrese el ISBN mínimo:");
+                let mut entrada_min = String::new();
+                std::io::stdin().read_line(&mut entrada_min).unwrap();
+                
+                println!("Ingrese el ISBN máximo:");
+                let mut entrada_max = String::new();
+                std::io::stdin().read_line(&mut entrada_max).unwrap();
 
-    loop {
-        println!("\nIngrese el ISBN mínimo del rango (o '0' para salir):");
-        let mut entrada_min = String::new();
-        std::io::stdin().read_line(&mut entrada_min).expect("Error al leer");
-        
-        let min = match entrada_min.trim().parse::<u32>() {
-            Ok(0) => {
-                println!("Saliendo de la búsqueda por rango...");
+                if let (Ok(min), Ok(max)) = (entrada_min.trim().parse::<u32>(), entrada_max.trim().parse::<u32>()) {
+                    if min > max {
+                        println!("Error: El mínimo no puede ser mayor que el máximo.");
+                    } else {
+                        let libros_en_rango = buscar_rango(&raiz, min, max);
+                        if libros_en_rango.is_empty() {
+                            println!("No hay libros en el rango [{} - {}].", min, max);
+                        } else {
+                            println!("Libros encontrados:");
+                            for libro in libros_en_rango {
+                                println!("   - ISBN {}: {}", libro.isbn, libro.titulo);
+                            }
+                        }
+                    }
+                } else {
+                    println!("Error: Debe ingresar valores numéricos.");
+                }
+                
+                println!("(Presione Enter para volver al menú principal...)");
+                let mut pausa = String::new();
+                std::io::stdin().read_line(&mut pausa).unwrap();
+            }
+            "0" => {
+                println!("Cerrando el sistema.");
                 break;
             }
-            Ok(num) => num,
-            Err(_) => {
-                println!("Por favor, ingrese un número válido.");
-                continue;
-            }
-        };
-
-        println!("Ingrese el ISBN máximo del rango:");
-        let mut entrada_max = String::new();
-        std::io::stdin().read_line(&mut entrada_max).expect("Error al leer");
-        
-        let max = match entrada_max.trim().parse::<u32>() {
-            Ok(num) => num,
-            Err(_) => {
-                println!("Por favor, ingrese un número válido para el máximo.");
-                continue;
-            }
-        };
-
-        if min > max {
-            println!("Error: El valor mínimo no puede ser mayor que el máximo.");
-            continue;
-        }
-
-        let libros_en_rango = buscar_rango(&raiz, min, max);
-
-        if libros_en_rango.is_empty() {
-            println!("No se encontraron libros en el rango [{} - {}].", min, max);
-        } else {
-            println!("Libros encontrados en el rango [{} - {}]:", min, max);
-            for libro in libros_en_rango {
-                println!("   - ISBN {}: {}", libro.isbn, libro.titulo);
+            _ => {
+                println!("Opción no válida. Por favor, seleccione un número del 0 al 5.");
             }
         }
     }
-    
-    println!("\n¡Programa finalizado con éxito! El sistema de la biblioteca Santa Ana está listo.");
-
 }
