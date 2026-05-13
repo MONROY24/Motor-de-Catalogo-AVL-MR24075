@@ -220,6 +220,34 @@ fn eliminar(nodo_opt: Option<Box<Nodo>>, isbn: u32) -> Option<Box<Nodo>> {
 }
 
 
+// Busca y retorna una lista de referencias a libros cuyo ISBN esté dentro del rango [min, max].
+// La función auxiliar `buscar_rango_aux` realiza una búsqueda recursiva en el árbol, agregando libros al vector de resultados si su ISBN está dentro del rango especificado.
+fn buscar_rango<'a>(nodo: &'a Option<Box<Nodo>>, min: u32, max: u32) -> Vec<&'a Libro> {
+    let mut resultados = Vec::new();
+    buscar_rango_aux(nodo, min, max, &mut resultados);
+    resultados
+}
+
+fn buscar_rango_aux<'a>(
+    nodo: &'a Option<Box<Nodo>>,
+    min: u32,
+    max: u32,
+    resultados: &mut Vec<&'a Libro>,
+) {
+    if let Some(n) = nodo {
+        if n.libro.isbn > min {
+            buscar_rango_aux(&n.izquierdo, min, max, resultados);
+        }
+        if n.libro.isbn >= min && n.libro.isbn <= max {
+            resultados.push(&n.libro);
+        }
+        if n.libro.isbn < max {
+            buscar_rango_aux(&n.derecho, min, max, resultados);
+        }
+    }
+}
+
+
 fn main() {
     let mut raiz: Option<Box<Nodo>> = None;
     let datos = vec![
@@ -278,7 +306,7 @@ fn main() {
     // -------------------------------------------------------------
     // FASE 3: Mantenimiento 
     // -------------------------------------------------------------
-    println!("\n--- ELIMINACIÓN ---");
+    /*println!("\n--- ELIMINACIÓN ---");
     println!("(Ingrese '0' para finalizar el mantenimiento)");
 
     loop {
@@ -304,6 +332,60 @@ fn main() {
     }
     println!("--- MANTENIMIENTO FINALIZADO ---");
 
+*/
 
+    // -------------------------------------------------------------
+    // FASE 4: Funcionalidades Extendidas Búsqueda por Rango
+    // -------------------------------------------------------------
+    println!("\n--- BÚSQUEDA POR RANGO  ---");
+    println!("(Ingrese '0' en el valor mínimo para finalizar)");
+
+    loop {
+        println!("\nIngrese el ISBN mínimo del rango (o '0' para salir):");
+        let mut entrada_min = String::new();
+        std::io::stdin().read_line(&mut entrada_min).expect("Error al leer");
+        
+        let min = match entrada_min.trim().parse::<u32>() {
+            Ok(0) => {
+                println!("Saliendo de la búsqueda por rango...");
+                break;
+            }
+            Ok(num) => num,
+            Err(_) => {
+                println!("Por favor, ingrese un número válido.");
+                continue;
+            }
+        };
+
+        println!("Ingrese el ISBN máximo del rango:");
+        let mut entrada_max = String::new();
+        std::io::stdin().read_line(&mut entrada_max).expect("Error al leer");
+        
+        let max = match entrada_max.trim().parse::<u32>() {
+            Ok(num) => num,
+            Err(_) => {
+                println!("Por favor, ingrese un número válido para el máximo.");
+                continue;
+            }
+        };
+
+        if min > max {
+            println!("Error: El valor mínimo no puede ser mayor que el máximo.");
+            continue;
+        }
+
+        let libros_en_rango = buscar_rango(&raiz, min, max);
+
+        if libros_en_rango.is_empty() {
+            println!("No se encontraron libros en el rango [{} - {}].", min, max);
+        } else {
+            println!("Libros encontrados en el rango [{} - {}]:", min, max);
+            for libro in libros_en_rango {
+                println!("   - ISBN {}: {}", libro.isbn, libro.titulo);
+            }
+        }
+    }
+    
+    println!("\n¡Programa finalizado con éxito! El sistema de la biblioteca Santa Ana está listo.");
 
 }
