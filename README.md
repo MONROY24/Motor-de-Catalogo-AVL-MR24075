@@ -10,3 +10,6 @@ El sistema es un motor de búsqueda de alto rendimiento. Está implementado util
 2. **Motor de Consulta:** Búsqueda eficiente utilizando referencias (`&Libro`) para evitar copias innecesarias en memoria.
 3. **Mantenimiento (Eliminación):** Lógica para dar de baja nodos (hojas, un hijo, dos hijos mediante sucesor in-orden) y re-balanceo dinámico.
 4. **Funcionalidad Extendida:** Búsqueda de libros por rango de ISBN.
+
+
+### Developed by MR24075
