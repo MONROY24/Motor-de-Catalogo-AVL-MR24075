@@ -22,6 +22,9 @@
     indispensable en las rotaciones AVL para reorganizar los punteros sin violar
     las reglas de propiedad (ownership) del compilador.
 */
+
+
+use std::io;
 #[derive(Debug, Clone)]
 struct Libro {
     isbn: u32,
@@ -140,6 +143,23 @@ fn imprimir(nodo: &Option<Box<Nodo>>, nivel: usize) {
     }
 }
 
+// Busca un libro por su ISBN y retorna una referencia al mismo si existe.
+//haciendo un match directamente sobre la referencia del Option
+fn buscar(nodo: &Option<Box<Nodo>>, isbn: u32) -> Option<&Libro> {
+    match nodo {
+        None => None, 
+        Some(n) => {
+            if isbn == n.libro.isbn {
+                Some(&n.libro)
+            } else if isbn < n.libro.isbn {
+                buscar(&n.izquierdo, isbn)
+            } else {
+                buscar(&n.derecho, isbn)
+            }
+        }
+    }
+}
+
 fn main() {
     let mut raiz: Option<Box<Nodo>> = None;
     let datos = vec![
@@ -163,4 +183,34 @@ fn main() {
     imprimir(&raiz, 0);
 
     // --- ESPACIO PARA TUS PRUEBAS ---
+
+
+    // -------------------------------------------------------------
+    // Pruebas de búsqueda (FASE 2)
+    // -------------------------------------------------------------
+    println!("\n---BÚSQUEDA---");
+    println!("(Ingrese '0' en cualquier momento para finalizar la búsqueda)");
+    loop {
+        println!("\nPor favor, ingrese el ISBN del libro que desea buscar:");
+        
+        let mut entrada = String::new();
+
+        io::stdin()
+            .read_line(&mut entrada)
+            .expect("Error al leer la entrada del usuario");
+        match entrada.trim().parse::<u32>() {
+            Ok(0) => {
+                println!("Saliendo del motor de búsqueda...");
+                break; 
+            }            Ok(isbn_ingresado) => {
+                match buscar(&raiz, isbn_ingresado) {
+                    Some(libro) => println!("Éxito: Se encontró el ISBN {}: '{}'", isbn_ingresado, libro.titulo),
+                    None => println!("El ISBN {} no existe en el catálogo.", isbn_ingresado),
+                }
+            }
+            Err(_) => {
+                println!("Entrada no válida. Por favor, ingrese '0' para salir.");
+            }
+        }
+    }
 }
