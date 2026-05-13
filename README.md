@@ -1,6 +1,6 @@
 # Motor de Catálogo AVL en Rust 
 
-Este repositorio contiene el código correspondiente al **Segundo Examen Parcial** de la materia **Estructuras de Datos II **.
+Este repositorio contiene el código correspondiente al **Segundo Examen Parcial** de la materia **Estructuras de Datos II**.
 
 ## Descripción del Proyecto
 El sistema es un motor de búsqueda de alto rendimiento. Está implementado utilizando un **Árbol AVL** en Rust para garantizar tiempos de búsqueda, inserción y eliminación óptimos ($O(\log n)$) mediante el auto-balanceo.
