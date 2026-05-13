@@ -160,6 +160,66 @@ fn buscar(nodo: &Option<Box<Nodo>>, isbn: u32) -> Option<&Libro> {
     }
 }
 
+
+/// Encuentra el libro con el ISBN mínimo en un subárbol.
+fn encontrar_minimo(nodo: &Box<Nodo>) -> &Libro {
+    match nodo.izquierdo.as_ref() {
+        None => &nodo.libro, 
+        Some(izq) => encontrar_minimo(izq),
+    }
+}
+
+// Elimina un libro por su ISBN y retorna la nueva raíz del subárbol modificado.
+fn eliminar(nodo_opt: Option<Box<Nodo>>, isbn: u32) -> Option<Box<Nodo>> {
+    let mut nodo = match nodo_opt {
+        None => return None,
+        Some(n) => n,
+    };
+
+    if isbn < nodo.libro.isbn {
+        nodo.izquierdo = eliminar(nodo.izquierdo.take(), isbn);
+    } else if isbn > nodo.libro.isbn {
+        nodo.derecho = eliminar(nodo.derecho.take(), isbn);
+    } else {        
+        if nodo.izquierdo.is_none() {
+            return nodo.derecho.take(); 
+        } else if nodo.derecho.is_none() {
+            return nodo.izquierdo.take();
+        }
+        let isbn_sucesor = {
+            let sucesor = encontrar_minimo(nodo.derecho.as_ref().unwrap());
+            nodo.libro = sucesor.clone();
+            sucesor.isbn
+        };
+        nodo.derecho = eliminar(nodo.derecho.take(), isbn_sucesor);
+    }
+
+    actualizar_altura(&mut nodo);
+    let balance = obtener_balance(&nodo);
+
+    if balance > 1 {
+        if obtener_balance(nodo.izquierdo.as_ref().unwrap()) >= 0 {
+            return Some(rotar_derecha(nodo));
+        } else {
+            let hijo_izq = nodo.izquierdo.take().unwrap();
+            nodo.izquierdo = Some(rotar_izquierda(hijo_izq));
+            return Some(rotar_derecha(nodo)); 
+        }
+    }
+    if balance < -1 {
+        if obtener_balance(nodo.derecho.as_ref().unwrap()) <= 0 {
+            return Some(rotar_izquierda(nodo));
+        } else {
+            let hijo_der = nodo.derecho.take().unwrap();
+            nodo.derecho = Some(rotar_derecha(hijo_der));
+            return Some(rotar_izquierda(nodo)); 
+        }
+    }
+
+    Some(nodo)
+}
+
+
 fn main() {
     let mut raiz: Option<Box<Nodo>> = None;
     let datos = vec![
@@ -188,7 +248,7 @@ fn main() {
     // -------------------------------------------------------------
     // Pruebas de búsqueda (FASE 2)
     // -------------------------------------------------------------
-    println!("\n---BÚSQUEDA---");
+    /*println!("\n---BÚSQUEDA---");
     println!("(Ingrese '0' en cualquier momento para finalizar la búsqueda)");
     loop {
         println!("\nPor favor, ingrese el ISBN del libro que desea buscar:");
@@ -212,5 +272,38 @@ fn main() {
                 println!("Entrada no válida. Por favor, ingrese '0' para salir.");
             }
         }
+    }*/
+
+
+    // -------------------------------------------------------------
+    // FASE 3: Mantenimiento 
+    // -------------------------------------------------------------
+    println!("\n--- ELIMINACIÓN ---");
+    println!("(Ingrese '0' para finalizar el mantenimiento)");
+
+    loop {
+        println!("\nÁrbol actual:");
+        imprimir(&raiz, 0);
+        println!("\nIngrese el ISBN del libro que desea eliminar:");
+
+        let mut entrada_del = String::new();
+        io::stdin().read_line(&mut entrada_del).expect("Error al leer");
+
+        match entrada_del.trim().parse::<u32>() {
+            Ok(0) => break,
+            Ok(isbn_a_borrar) => {
+                if buscar(&raiz, isbn_a_borrar).is_some() {
+                    raiz = eliminar(raiz.take(), isbn_a_borrar);
+                    println!("Libro con ISBN {} eliminado exitosamente.", isbn_a_borrar);
+                } else {
+                    println!("El ISBN {} no se encuentra en el catálogo.", isbn_a_borrar);
+                }
+            }
+            Err(_) => println!("Por favor, ingrese un número válido."),
+        }
     }
+    println!("--- MANTENIMIENTO FINALIZADO ---");
+
+
+
 }
