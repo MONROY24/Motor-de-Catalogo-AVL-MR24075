@@ -1,3 +1,27 @@
+/*
+    PRUEBA DE ESCRITORIO
+    Inserción: [10, 20, 30, 5, 2, 25]
+
+    1. Insertar 10, 20, 30 -> Rotación Izquierda en 10. Raíz: 20.
+    2. Insertar 5, 2       -> Rotación Derecha en 10.
+    3. Insertar 25         -> Balanceado.
+
+    ESTADO FINAL DEL ÁRBOL:
+          20
+        /    \
+       5      30
+      / \    /
+     2  10  25
+*/
+
+/*
+    ANÁLISIS DE RUST (Por qué usar take())
+    En Rust, no se puede dejar un campo de una estructura vacío (null) durante una
+    reasignación. La función take() permite extraer el valor de un Option (dejando None
+    en su lugar) para mover la propiedad del nodo a una variable temporal. Esto es
+    indispensable en las rotaciones AVL para reorganizar los punteros sin violar
+    las reglas de propiedad (ownership) del compilador.
+*/
 #[derive(Debug, Clone)]
 struct Libro {
     isbn: u32,
@@ -6,6 +30,8 @@ struct Libro {
 
 struct Nodo {
     libro: Libro,
+    // Option permite que el hijo sea nulo (None).
+    // Box coloca el Nodo en el heap, permitiendo una estructura recursiva de tamaño conocido.
     izquierdo: Option<Box<Nodo>>,
     derecho: Option<Box<Nodo>>,
     altura: i32,
@@ -23,6 +49,9 @@ impl Nodo {
 }
 
 fn obtener_altura(nodo: &Option<Box<Nodo>>) -> i32 {
+    //Uso de as_ref(): Convierte la referencia `&Option<Box<Nodo>>` en un `Option<&Box<Nodo>>`.
+    // Permite mirar  al valor dentro del Option
+    // sin consumir el Option original ni tomar propiedad (ownership) del nodo.
     nodo.as_ref().map_or(0, |n| n.altura)
 }
 
@@ -38,9 +67,13 @@ fn obtener_balance(nodo: &Nodo) -> i32 {
 }
 
 fn rotar_derecha(mut y: Box<Nodo>) -> Box<Nodo> {
+    // .take() extrae el valor de la Option dejando un None en su lugar.
+    // Esto permite mover la propiedad (ownership) del nodo sin violar las reglas de Rust[cite: 12, 14].
     let mut x = y.izquierdo.take().expect("Hijo izquierdo ausente");
+    // Reasignamos el hijo derecho de 'x' al hijo izquierdo de 'y'
     y.izquierdo = x.derecho.take();
     actualizar_altura(&mut y);
+    // 'y' ahora pasa a ser el hijo derecho del nuevo nodo raíz 'x'
     x.derecho = Some(y);
     actualizar_altura(&mut x);
     x
@@ -68,7 +101,7 @@ fn insertar(nodo_opt: Option<Box<Nodo>>, libro: Libro) -> Box<Nodo> {
     } else if isbn_nuevo > nodo.libro.isbn {
         nodo.derecho = Some(insertar(nodo.derecho.take(), libro));
     } else {
-        return nodo; 
+        return nodo;
     }
 
     actualizar_altura(&mut nodo);
@@ -96,7 +129,13 @@ fn insertar(nodo_opt: Option<Box<Nodo>>, libro: Libro) -> Box<Nodo> {
 fn imprimir(nodo: &Option<Box<Nodo>>, nivel: usize) {
     if let Some(n) = nodo {
         imprimir(&n.derecho, nivel + 1);
-        println!("{:indent$}[ISBN: {}] {}", "", n.libro.isbn, n.libro.titulo, indent = nivel * 4);
+        println!(
+            "{:indent$}[ISBN: {}] {}",
+            "",
+            n.libro.isbn,
+            n.libro.titulo,
+            indent = nivel * 4
+        );
         imprimir(&n.izquierdo, nivel + 1);
     }
 }
@@ -104,17 +143,24 @@ fn imprimir(nodo: &Option<Box<Nodo>>, nivel: usize) {
 fn main() {
     let mut raiz: Option<Box<Nodo>> = None;
     let datos = vec![
-        (10, "El Quijote"), (20, "1984"), (30, "Hamlet"),
-        (5, "Fahrenheit 451"), (2, "La Odisea"), (25, "El Principito"),
+        (10, "El Quijote"),
+        (20, "1984"),
+        (30, "Hamlet"),
+        (5, "Fahrenheit 451"),
+        (2, "La Odisea"),
+        (25, "El Principito"),
     ];
 
     println!("--- Sistema de Inventario de Librería (AVL) ---");
     for (isbn, titulo) in datos {
-        let libro = Libro { isbn, titulo: titulo.to_string() };
+        let libro = Libro {
+            isbn,
+            titulo: titulo.to_string(),
+        };
         raiz = Some(insertar(raiz.take(), libro));
     }
 
     imprimir(&raiz, 0);
-    
+
     // --- ESPACIO PARA TUS PRUEBAS ---
 }
